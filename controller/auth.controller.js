@@ -31,7 +31,7 @@ async function Create(req, res) {
         return
     }
 
-    // try {
+    try {
 
         const stringFile = req.file.buffer.toString("base64");
     
@@ -60,12 +60,17 @@ async function Create(req, res) {
             },
         })
 
-        await transporter.sendMail({
+        console.log(process.env.PASS_SMTP);
+
+        const mailOptions = await transporter.sendMail({
             from: process.env.EMAIL_SMTP, 
             to: payload.email, 
             subject: "Verification your email", 
-            text: `${process.env.BASE_URL}/auth/verify-email?email=${payload.email}`,
+            text: `Click here to verify your email`,
+            html: `<a href="${process.env.BASE_URL}api/v1/auth/verify-email?email=${payload.email}">Click here to verify your email</a>`,
         })
+
+        console.log("Email sent: " + mailOptions.response);
 
         const userView = await prisma.user.findUnique({
             where: {
@@ -83,11 +88,11 @@ async function Create(req, res) {
         res.status(200).json(resp);
         return
 
-    // } catch (error) {
-    //     let resp = ResponseTemplate(null, 'internal server error', error, 500)
-    //     res.status(500).json(resp)
-    //     return
-    // }
+    } catch (error) {
+        let resp = ResponseTemplate(null, 'internal server error', error, 500)
+        res.status(500).json(resp)
+        return
+    }
 }
 
 async function verifyEmail(req, res) {
@@ -119,10 +124,10 @@ async function verifyEmail(req, res) {
 
 async function Login(req, res) {
 
-    try {
+    // try {
         const { email, password } = req.body
 
-        const checkUser = await prisma.user.findUnique({
+        const checkUser = await prisma.user.findFirst({
             where: {
                 email: email
             }
@@ -146,17 +151,18 @@ async function Login(req, res) {
             id: checkUser.id,
             email: checkUser.email,
         }, process.env.SECRET_KEY,
-            {expiresIn: '24h'});
+            // { expiresIn: '24h' }
+        );
 
         let resp = ResponseTemplate(token, 'success', null, 200)
         res.status(200).json(resp)
         return
 
-    } catch (error) {
-        let resp = ResponseTemplate(null, 'internal server error', error, 500)
-        res.status(500).json(resp)
-        return
-    }
+    // } catch (error) {
+    //     let resp = ResponseTemplate(null, 'internal server error', error, 500)
+    //     res.status(500).json(resp)
+    //     return
+    // }
 }
 
 async function updateProfile(req, res) {

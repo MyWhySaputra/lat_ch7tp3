@@ -5,12 +5,12 @@ const { Auth } = require('../middleware/middleware')
 
 const multer = require("multer")()
 
-router.post('/auth/create', multer.single("images"), Create)
+router.post('/auth/create', multer.single("image"), Create)
 
-router.post('/auth/verify-email?email=', verifyEmail)
+router.get('/auth/verify-email', verifyEmail)
 
 router.post('/auth/login', Login)
 
-router.put('/auth/update-profile', Auth, multer.single("images"), updateProfile)
+router.put('/auth/update-profile', Auth, multer.single("image"), updateProfile)
 
 module.exports = router
