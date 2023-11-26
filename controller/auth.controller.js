@@ -15,12 +15,16 @@ async function Create(req, res) {
 
     const hashPass = await HashPassword(password)
 
+    const dateOfBirth = new Date(parseISO(dob))
+    dateOfBirth.setDate(dateOfBirth.getDate() + 1)
+    const newDateOfBirth = dateOfBirth.toISOString()
+
     const payload = {
         name,
         email,
         password: hashPass,
         age,
-        dob: parseISO(dob),
+        dob: newDateOfBirth,
     }
 
     const emailUser = await prisma.user.findUnique({
@@ -33,7 +37,9 @@ async function Create(req, res) {
         return
     }
 
-    const pattern = /^\d{4}-\d{2}-\d{2}$/
+    console.log(payload)
+
+    const pattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/
 
     if (!pattern.test(payload.dob)) {
         let resp = ResponseTemplate(null, 'Date of birth format is incorrect (yyyy-mm-dd)', null, 400)
