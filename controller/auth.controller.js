@@ -3,6 +3,7 @@ const { ResponseTemplate } = require('../helper/template.helper')
 const imagekit = require('../lib/imagekit')
 // const transporter = require('../lib/nodemailer')
 const nodemailer = require("nodemailer")
+const { parseISO } = require("date-fns")
 const { PrismaClient } = require('@prisma/client')
 
 const prisma = new PrismaClient()
@@ -10,7 +11,7 @@ var jwt = require('jsonwebtoken')
 
 async function Create(req, res) {
 
-    const { name, email, password, age } = req.body
+    const { name, email, password, age, dob } = req.body
 
     const hashPass = await HashPassword(password)
 
@@ -18,7 +19,8 @@ async function Create(req, res) {
         name,
         email,
         password: hashPass,
-        age
+        age,
+        dob: parseISO(dob),
     }
 
     const emailUser = await prisma.user.findUnique({
@@ -28,6 +30,14 @@ async function Create(req, res) {
     if (emailUser) {
         let resp = ResponseTemplate(null, 'Email already exist', null, 404)
         res.status(404).json(resp)
+        return
+    }
+
+    const pattern = /^\d{4}-\d{2}-\d{2}$/
+
+    if (!pattern.test(payload.dob)) {
+        let resp = ResponseTemplate(null, 'Date of birth format is incorrect (yyyy-mm-dd)', null, 400)
+        res.status(400).json(resp)
         return
     }
 
@@ -46,6 +56,7 @@ async function Create(req, res) {
                 email: payload.email,
                 password: payload.password,
                 age: parseInt(payload.age),
+                dob: payload.dob,
                 profile_picture: uploadFile.url
             }
         })
@@ -60,17 +71,13 @@ async function Create(req, res) {
             },
         })
 
-        console.log(process.env.PASS_SMTP);
-
-        const mailOptions = await transporter.sendMail({
+        await transporter.sendMail({
             from: process.env.EMAIL_SMTP, 
             to: payload.email, 
             subject: "Verification your email", 
             text: `Click here to verify your email`,
             html: `<a href="${process.env.BASE_URL}api/v1/auth/verify-email?email=${payload.email}">Click here to verify your email</a>`,
         })
-
-        console.log("Email sent: " + mailOptions.response);
 
         const userView = await prisma.user.findUnique({
             where: {
@@ -202,6 +209,19 @@ async function updateProfile(req, res) {
         return
     }
 }
+
+async function cek(req, res) {
+    const id1 = '20-02-2022'
+
+    const id2 = '11-03-2022'
+
+    if ( id1 == 'dd-mm-yyyy' || id2 == 'dd-mm-yyyy' ) {
+        true
+    } else {
+        false
+    }
+}
+
 
 module.exports = {
     Create,

@@ -16,7 +16,7 @@ model user {
   email           String    @db.VarChar(100) @unique
   password        String    @db.VarChar(255)
   age             Int       @db.Integer
-  dob             DateTime? @db.Date
+  dob             DateTime  @db.Date
   profile_picture String    @db.VarChar(255)
   is_verified     Boolean   @default(false)
   createAt        DateTime  @default(now())
