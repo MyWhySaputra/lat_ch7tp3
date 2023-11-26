@@ -1,7 +1,7 @@
 const { HashPassword, ComparePassword } = require('../helper/hash_pass_helper')
 const { ResponseTemplate } = require('../helper/template.helper')
 const imagekit = require('../lib/imagekit')
-// const transporter = require('../lib/nodemailer')
+const transporter = require('../lib/nodemailer')
 const nodemailer = require("nodemailer")
 const { parseISO } = require("date-fns")
 const { PrismaClient } = require('@prisma/client')
@@ -37,8 +37,6 @@ async function Create(req, res) {
         return
     }
 
-    console.log(payload)
-
     const pattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/
 
     if (!pattern.test(payload.dob)) {
@@ -65,16 +63,6 @@ async function Create(req, res) {
                 dob: payload.dob,
                 profile_picture: uploadFile.url
             }
-        })
-
-        const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 465,
-            secure: true,
-            auth: {
-                user: process.env.EMAIL_SMTP,
-                pass: process.env.PASS_SMTP,
-            },
         })
 
         await transporter.sendMail({
